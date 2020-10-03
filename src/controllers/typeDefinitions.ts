@@ -30,10 +30,10 @@ export interface Employee {
 	id: string;
 	active: boolean;
 	lastName: string;
-	createdOn: Date;
+	createdOn: string;
 	firstName: string;
 	managerId: string;
-	employeeId: string;
+	employeeId: number;
 	classification: number;
 }
 
