@@ -5,7 +5,7 @@ import * as EmployeeHelper from "./helpers/employeeHelper";
 import { Resources, ResourceKey } from "../../../resourceLookup";
 import * as DatabaseConnection from "../models/databaseConnection";
 import { CommandResponse, Employee, EmployeeSaveRequest } from "../../typeDefinitions";
-import {EmployeeClassification} from "../models/constants/entityTypes"
+import { EmployeeClassification } from "../models/constants/entityTypes";
 
 const validateSaveRequest = (
 	saveEmployeeRequest: EmployeeSaveRequest
@@ -15,11 +15,9 @@ const validateSaveRequest = (
 
 	if (Helper.isBlankString(saveEmployeeRequest.firstName)) {
 		errorMessage = Resources.getString(ResourceKey.EMPLOYEE_FIRST_NAME_INVALID);
-    } 
-    else if (Helper.isBlankString(saveEmployeeRequest.lastName)) {
+	} else if (Helper.isBlankString(saveEmployeeRequest.lastName)) {
 		errorMessage = Resources.getString(ResourceKey.EMPLOYEE_LAST_NAME_INVALID);
-    } 
-    else if (Helper.isBlankString(saveEmployeeRequest.password)) {
+		} else if (Helper.isBlankString(saveEmployeeRequest.password)) {
 		errorMessage = Resources.getString(ResourceKey.EMPLOYEE_PASSWORD_INVALID);
 	}
 
@@ -32,40 +30,37 @@ const validateSaveRequest = (
 };
 
 export const execute = async (
-    saveEmployeeRequest: EmployeeSaveRequest,
+	saveEmployeeRequest: EmployeeSaveRequest,
 ): Promise<CommandResponse<Employee>> => {
 
 	const validationResponse: CommandResponse<Employee> =
-        validateSaveRequest(saveEmployeeRequest);
-        
+		validateSaveRequest(saveEmployeeRequest);
 	if (validationResponse.status !== 200) {
 		return Promise.reject(validationResponse);
 	}
 
-    saveEmployeeRequest.password = EmployeeHelper.hashString(saveEmployeeRequest.password);
+	saveEmployeeRequest.password = EmployeeHelper.hashString(saveEmployeeRequest.password);
 
 	const employeeToCreate: EmployeeModel = <EmployeeModel>{
-        lastName: saveEmployeeRequest.lastName,
-        password: Buffer.from(saveEmployeeRequest.password),
-        firstName: saveEmployeeRequest.firstName,
-        classification: (saveEmployeeRequest.isInitialEmployee 
-            ? EmployeeClassification.GeneralManager 
-            : saveEmployeeRequest),
+		lastName: saveEmployeeRequest.lastName,
+		password: Buffer.from(saveEmployeeRequest.password),
+		firstName: saveEmployeeRequest.firstName,
+		classification: (saveEmployeeRequest.isInitialEmployee
+			? EmployeeClassification.GeneralManager
+			: saveEmployeeRequest),
 	};
 
 	let createTransaction: Sequelize.Transaction;
 
 	return DatabaseConnection.createTransaction()
 		.then((createdTransaction: Sequelize.Transaction): Promise<EmployeeModel> => {
-            
 			createTransaction = createdTransaction;
 
 			return EmployeeModel.create(
 				employeeToCreate,
 				<Sequelize.CreateOptions>{
 					transaction: createTransaction
-                });
-                
+				});
 		}).then((createdEmployee: EmployeeModel): CommandResponse<Employee> => {
 
 			createTransaction.commit();
@@ -73,10 +68,8 @@ export const execute = async (
 			return <CommandResponse<Employee>>{
 				status: 201,
 				data: EmployeeHelper.mapEmployeeData(createdEmployee)
-            };
-            
+			};
 		}).catch((error: any): Promise<CommandResponse<Employee>> => {
-
 			if (createTransaction != null) {
 				createTransaction.rollback();
 			}
@@ -85,7 +78,6 @@ export const execute = async (
 				status: (error.status || 500),
 				message: (error.message
 					|| Resources.getString(ResourceKey.EMPLOYEE_UNABLE_TO_SAVE))
-            });
-            
+			});
 		});
-};
+	};

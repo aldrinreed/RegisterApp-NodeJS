@@ -15,7 +15,6 @@ export const queryById = async (employeeId?: string): Promise<CommandResponse<Em
 
 	return EmployeeRepository.queryById(<string>employeeId)
 		.then((queriedEmployee: (EmployeeModel | null)): Promise<CommandResponse<Employee>> => {
-			
 			if (queriedEmployee == null) {
 				return Promise.reject(<CommandResponse<Employee>>{
 					status: 404,

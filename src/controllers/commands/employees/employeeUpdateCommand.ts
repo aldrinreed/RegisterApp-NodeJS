@@ -15,10 +15,10 @@ const validateSaveRequest = (
 
 	if (Helper.isBlankString(saveEmployeeRequest.firstName)) {
 		errorMessage = Resources.getString(ResourceKey.EMPLOYEE_FIRST_NAME_INVALID);
-    } 
-    else if (Helper.isBlankString(saveEmployeeRequest.lastName)) {
+	}
+	else if (Helper.isBlankString(saveEmployeeRequest.lastName)) {
 		errorMessage = Resources.getString(ResourceKey.EMPLOYEE_LAST_NAME_INVALID);
-    } 
+	}
 
 	return ((errorMessage === "")
 		? <CommandResponse<Employee>>{ status: 200 }
@@ -33,8 +33,7 @@ export const execute = async (
 ): Promise<CommandResponse<Employee>> => {
 
 	const validationResponse: CommandResponse<Employee> =
-        validateSaveRequest(saveEmployeeRequest);
-        
+		validateSaveRequest(saveEmployeeRequest);
 	if (validationResponse.status !== 200) {
 		return Promise.reject(validationResponse);
 	}
@@ -48,10 +47,8 @@ export const execute = async (
 
 			return EmployeeRepository.queryById(
 				<string>saveEmployeeRequest.id,
-                updateTransaction);
-                
+				updateTransaction);
 		}).then((queriedEmployee: (EmployeeModel | null)): Promise<EmployeeModel> => {
-
 			if (queriedEmployee == null) {
 				return Promise.reject(<CommandResponse<Employee>>{
 					status: 404,
@@ -62,16 +59,14 @@ export const execute = async (
 			return queriedEmployee.update(
 
 				<Object>{
-                    firstname: saveEmployeeRequest.firstName,
-                    lastname: saveEmployeeRequest.lastName,
-                    password: saveEmployeeRequest.password,
-                    classification: saveEmployeeRequest.classification
-                    
+					firstname: saveEmployeeRequest.firstName,
+					lastname: saveEmployeeRequest.lastName,
+					password: saveEmployeeRequest.password,
+					classification: saveEmployeeRequest.classification
 				},
 				<Sequelize.InstanceUpdateOptions>{
 					transaction: updateTransaction
-                });
-                
+				});
 		}).then((updatedEmployee: EmployeeModel): CommandResponse<Employee> => {
 
 			updateTransaction.commit();
@@ -79,8 +74,7 @@ export const execute = async (
 			return <CommandResponse<Employee>>{
 				status: 200,
 				data: EmployeeHelper.mapEmployeeData(updatedEmployee)
-            };
-            
+			};
 		}).catch((error: any): Promise<CommandResponse<Employee>> => {
 
 			if (updateTransaction != null) {
@@ -90,8 +84,7 @@ export const execute = async (
 			return Promise.reject(<CommandResponse<Employee>>{
 				status: (error.status || 500),
 				message: (error.messsage
-					|| Resources.getString(ResourceKey.PRODUCT_UNABLE_TO_SAVE))
-            });
-            
+					|| Resources.getString(ResourceKey.EMPLOYEE_UNABLE_TO_SAVE))
+			});
 		});
 };
